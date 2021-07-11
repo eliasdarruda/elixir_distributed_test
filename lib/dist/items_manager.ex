@@ -102,13 +102,15 @@ defmodule Dist.ItemsManager do
     GenServer.start_link(__MODULE__, args)
   end
 
+  # This act as a via getting the first member (not always the same order)
+  # subscribed in manager topic
   defp via do
-    :pg.get_members(@topic)
-    |> List.first()
+    :pg.get_members(@topic) |> List.first()
   end
 
-  defp item_via(id) do
-    :pg.get_members({id, Dist.Item}) |> List.first()
+  # This also acts as a via but in finding a topic corresponding item_id and then receiving its pid
+  defp item_via(item_id) do
+    :pg.get_members({item_id, Dist.Item}) |> List.first()
   end
 
   def new do
