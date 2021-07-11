@@ -17,3 +17,5 @@ Start creating Items with `Dist.ItemsManager.new`
 You can then kill an open `iex` and Add a new item to the other node to see every other persisted in the other node's `ItemsManager` state
 
 This will distribute the current state evenly across all other nodes and recreate its children for every node that received the new items
+
+You can call `Dist.ItemsManager.hello(item_id)` passing a generated id from new to see a message from Item GenServer process telling which node is currently responding
