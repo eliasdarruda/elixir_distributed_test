@@ -26,7 +26,9 @@ You can then kill an open `iex` and Add a new item to the other node to see ever
 
 This will distribute the current state evenly across all other nodes and recreate its children for every node that received the new items
 
-You can call `Dist.ItemsManager.hello(item_id)` passing a generated id from new to see a message from Item GenServer process telling which node is currently responding
+You can generate childs using `Dist.ItemsManager.new 10`, this will generate 10 processes using syn, pg and horde as distributed registry  
+
+You can then call the processes calling a generated id and the module corresponding what you want, example: `Dist.ItemPg.hello 512951` Assuming it was previously created a process with id `512951`
 
 
 ## Benchmark results (Using benchee)
