@@ -4,13 +4,21 @@ This test uses `Erlang PG` to act as a "registry" for GenServer and communicate 
 
 More info about `PG` can be found at: https://erlang.org/doc/man/pg.html
 
+## Install dependencies
+
+```sh
+$> mix deps.get
+```
+
 ## Run two or more terminals using
 
-> iex --sname n1 -S mix
+```sh
+$> iex --name n1@127.0.0.1 -S mix
 
-> iex --sname n2 -S mix
+$> iex --name n2@127.0.0.1 -S mix
+```
 
-Inside iex, connect nodes using `Node.connect(:"n1@whatever_generated_name")`
+`libcluster` will connect those nodes automatically
 
 Start creating Items with `Dist.ItemsManager.new`
 
