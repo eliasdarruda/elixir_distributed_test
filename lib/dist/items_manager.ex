@@ -6,16 +6,27 @@ defmodule Dist.ItemsManager do
   require Logger
 
   defmodule Ref do
-    defstruct [:ref, :pid]
+    defstruct [:type, :pid]
   end
 
   @impl true
   def init(_args) do
     Process.flag(:trap_exit, true)
 
-    :ok = :pg.join(@topic, self())
+    {:ok, %{}, {:continue, :add_topic}}
+  end
 
-    {:ok, %{}}
+  @impl true
+  def handle_continue(:add_topic, state) do
+    # NOOOOOOOO GOD PLEASE NOOOOOOOOOOO
+    :timer.sleep(100)
+
+    if :pg.get_members(@topic) == [] do
+      Logger.debug "Joined manager"
+      :ok = :pg.join(@topic, self())
+    end
+
+    {:noreply, state}
   end
 
   @impl true
@@ -49,33 +60,73 @@ defmodule Dist.ItemsManager do
   end
 
   @impl true
-  def handle_call(:new, _from, state) do
-    {id, ref} = create_item()
+  def handle_call({:get_ids, type}, _from, state) do
+    ids = Enum.map(state, fn
+      {id, %Ref{type: ^type}} -> id
+      _ -> nil
+    end)
+    |> Enum.reject(&is_nil/1)
 
-    state = Map.put(state, id, ref)
+    {:reply, ids, state}
+  end
+
+  @impl true
+  def handle_call({:new, count}, _from, state) do
+    pg = Enum.map(1..count, fn _ ->
+      create_item(:pg)
+    end)
+    |> Map.new
+
+    syn = Enum.map(1..count, fn _ ->
+      create_item(:syn)
+    end)
+    |> Map.new
+
+    horde = Enum.map(1..count, fn _ ->
+      create_item(:horde)
+    end)
+    |> Map.new
+
+    state = Map.merge(state, horde)
+    |> Map.merge(syn)
+    |> Map.merge(pg)
 
     {:reply, state, state}
   end
 
-  @impl true
-  def handle_call({:hello, id}, _from, state) do
-    case item_via(id) do
-      nil ->
-        {:reply, :not_found, state}
+  defp create_item(type, existing_id \\ nil)
+  defp create_item(:syn, existing_id) do
+    id = existing_id || :rand.uniform(1_100_000_000)
 
-      pid ->
-        {:reply, GenServer.call(pid, :hello_world), state}
+    {:ok, pid} = case Dist.ItemSyn.start(id: id) do
+      {:error, {:already_started, pid}} -> {:ok, pid}
+      {:ok, pid} -> {:ok, pid}
     end
+
+    Process.monitor(pid)
+
+    {id, %Ref{pid: pid, type: :syn}}
   end
 
-  defp create_item(existing_id \\ nil) do
-    id = existing_id || :rand.uniform(100_000_000)
+  defp create_item(:horde, existing_id) do
+    id = existing_id || :rand.uniform(1_100_000_000)
 
-    {:ok, pid} = Dist.Item.start(id: id)
+    {:ok, pid} = Dist.ItemHordeDynamicSupervisor.add(id)
 
-    ref = Process.monitor(pid)
+    {id, %Ref{pid: pid, type: :horde}}
+  end
 
-    {id, %Ref{pid: pid, ref: ref}}
+  defp create_item(:pg, existing_id) do
+    id = existing_id || :rand.uniform(1_100_000_000)
+
+    {:ok, pid} = case Dist.ItemPg.start(id: id) do
+      {:error, {:already_started, pid}} -> {:ok, pid}
+      {:ok, pid} -> {:ok, pid}
+    end
+
+    Process.monitor(pid)
+
+    {id, %Ref{pid: pid, type: :pg}}
   end
 
   defp redistribute_state([], refs),
@@ -108,16 +159,11 @@ defmodule Dist.ItemsManager do
     :pg.get_members(@topic) |> List.first()
   end
 
-  # This also acts as a via but in finding a topic corresponding item_id and then receiving its pid
-  defp item_via(item_id) do
-    :pg.get_members({item_id, Dist.Item}) |> List.first()
+  def new(count_each \\ 10000) do
+    GenServer.call(via(), {:new, count_each}, 999_999_000)
   end
 
-  def new do
-    GenServer.call(via(), :new)
-  end
-
-  def hello(id) do
-    GenServer.call(via(), {:hello, id})
+  def get_ids(type) do
+    GenServer.call(via(), {:get_ids, type}, 999_999_000)
   end
 end

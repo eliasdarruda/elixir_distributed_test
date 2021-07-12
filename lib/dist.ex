@@ -6,12 +6,10 @@ defmodule Dist do
   def start(_type, _args) do
     children = [
       {Cluster.Supervisor, [@topologies, [name: Dist.ClusterSupervisor]]},
-      {Horde.Registry, [name: Dist.Registry, keys: :unique]},
-      {Horde.DynamicSupervisor, [name: Dist.DistributedSupervisor, strategy: :one_for_one]},
+      Dist.Registry.child_spec(),
+      Dist.ItemHordeDynamicSupervisor,
       pg_spec(),
-      Dist.ItemsManager,
-      Dist.ItemsManagerHorde,
-      Dist.ItemsManagerSyn
+      Dist.ItemsManager
     ]
 
     opts = [strategy: :one_for_one, name: Dist.Supervisor]

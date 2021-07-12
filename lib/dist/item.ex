@@ -18,8 +18,8 @@ defmodule Dist.ItemHorde do
     {:reply, {:hello_from, :horde}, state}
   end
 
-  def start(args) do
-    GenServer.start(__MODULE__, args, name: via(args[:id]))
+  def start_link(id) do
+    GenServer.start_link(__MODULE__, [id: id], name: via(id))
   end
 
   def hello(id) do

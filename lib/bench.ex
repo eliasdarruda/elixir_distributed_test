@@ -1,26 +1,8 @@
 defmodule Bench do
-  def run(count \\ 10000) do
-    syn_ids = Enum.map(1..count, fn _num ->
-      id = :rand.uniform(100_000_000)
-      Dist.ItemSyn.start(id: id)
-
-      id
-    end)
-
-    pg_ids = Enum.map(1..count, fn _num ->
-      id = :rand.uniform(100_000_000)
-      Dist.ItemPg.start(id: id)
-
-      id
-    end)
-
-    horde_ids = Enum.map(1..count, fn _num ->
-      id = :rand.uniform(100_000_000)
-
-      Dist.ItemHorde.start(id: id)
-
-      id
-    end)
+  def run() do
+    horde_ids = Dist.ItemsManager.get_ids :horde
+    syn_ids = Dist.ItemsManager.get_ids :syn
+    pg_ids = Dist.ItemsManager.get_ids :pg
 
     Benchee.run(
       %{
