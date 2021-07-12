@@ -6,6 +6,7 @@ defmodule Dist.MixProject do
       app: :dist,
       version: "0.1.0",
       elixir: "~> 1.12",
+      config_path: "./config/config.exs",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -21,6 +22,8 @@ defmodule Dist.MixProject do
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
-    []
+    [
+      {:libcluster, "~> 3.3"}
+    ]
   end
 end

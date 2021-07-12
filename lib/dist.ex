@@ -1,8 +1,13 @@
 defmodule Dist do
   use Application
 
+  @topologies Application.compile_env(:libcluster, :topologies)
+
   def start(_type, _args) do
+    IO.inspect(@topologies)
+
     children = [
+      {Cluster.Supervisor, [@topologies, [name: Dist.ClusterSupervisor]]},
       pg_spec(),
       Dist.ItemsManager
     ]
