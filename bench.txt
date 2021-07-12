@@ -1,0 +1,61 @@
+## PROCESS MANAGER
+
+warmup: 2 s
+time: 5 s
+memory time: 0 ns
+parallel: 1
+inputs: none specified
+Estimated total run time: 21 s
+
+Benchmarking new_horde...
+Benchmarking new_pg...
+Benchmarking new_syn...
+
+Name                ips        average  deviation         median         99th %
+new_horde        0.0674       0.25 min     ±0.00%       0.25 min       0.25 min
+new_pg           0.0114       1.46 min     ±0.00%       1.46 min       1.46 min
+new_syn          0.0113       1.47 min     ±0.00%       1.47 min       1.47 min
+
+Comparison: 
+new_horde        0.0674
+new_pg           0.0114 - 5.92x slower +1.22 min
+new_syn          0.0113 - 5.96x slower +1.23 min
+
+
+## DYNAMIC ITEM 10000 calls each
+
+
+Name                ips        average  deviation         median         99th %
+new_horde         25.07       39.89 ms    ±11.24%       38.75 ms       58.90 ms
+new_pg            24.63       40.61 ms    ±25.42%       37.66 ms       85.42 ms
+new_syn           15.60       64.11 ms    ±10.42%       63.01 ms      105.05 ms
+
+Comparison: 
+new_horde         25.07
+new_pg            24.63 - 1.02x slower +0.72 ms
+new_syn           15.60 - 1.61x slower +24.22 ms
+
+
+## DYNAMIC ITEM 50000 calls each
+
+Name                ips        average  deviation         median         99th %
+new_pg             6.11      163.74 ms    ±19.03%      158.02 ms      306.64 ms
+new_horde          4.04      247.66 ms    ±21.48%      218.72 ms      376.29 ms
+new_syn            2.78      360.36 ms     ±9.78%      354.04 ms      465.05 ms
+
+Comparison: 
+new_pg             6.11
+new_horde          4.04 - 1.51x slower +83.92 ms
+new_syn            2.78 - 2.20x slower +196.62 ms
+
+############### SECOND TIME 50000 calls each
+
+Name                ips        average  deviation         median         99th %
+new_pg             5.65      176.92 ms    ±18.38%      162.84 ms      291.97 ms
+new_horde          4.11      243.40 ms    ±18.99%      229.78 ms      358.95 ms
+new_syn            2.44      409.93 ms    ±28.61%      357.95 ms      706.57 ms
+
+Comparison: 
+new_pg             5.65
+new_horde          4.11 - 1.38x slower +66.48 ms
+new_syn            2.44 - 2.32x slower +233.01 ms

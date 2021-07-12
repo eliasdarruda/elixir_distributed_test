@@ -1,4 +1,4 @@
-defmodule Dist.ItemsManager do
+defmodule Dist.ItemsManagerHorde do
   use GenServer
 
   @topic __MODULE__
@@ -13,16 +13,16 @@ defmodule Dist.ItemsManager do
   def init(_args) do
     Process.flag(:trap_exit, true)
 
-    :ok = :pg.join(@topic, self())
+    # :ok = :pg.join(@topic, self())
 
     {:ok, %{}}
   end
 
   @impl true
   def terminate(_reason, state) do
-    :ok = :pg.leave(@topic, self())
+    # :ok = :pg.leave(@topic, self())
 
-    redistribute_state(:pg.get_members(@topic), state)
+    # redistribute_state(:pg.get_members(@topic), state)
 
     {:noreply, state}
   end
@@ -99,13 +99,24 @@ defmodule Dist.ItemsManager do
   end
 
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+    case GenServer.start_link(__MODULE__, args, name: via()) do
+      {:ok, pid} ->
+        {:ok, pid}
+
+      {:error, {:already_started, pid}} ->
+        Logger.debug("already started at #{inspect(pid)}, returning :ignore")
+        :ignore
+    end
   end
 
   # This act as a via getting the first member (not always the same order)
   # subscribed in manager topic
   defp via do
-    :pg.get_members(@topic) |> List.first()
+    {:via, Horde.Registry, {Dist.Registry, __MODULE__}}
+  end
+
+  defp via_syn do
+    {:via, :syn, __MODULE__}
   end
 
   # This also acts as a via but in finding a topic corresponding item_id and then receiving its pid
@@ -117,7 +128,18 @@ defmodule Dist.ItemsManager do
     GenServer.call(via(), :new)
   end
 
+  def new_syn do
+    GenServer.call(via_syn(), :new)
+  end
+
   def hello(id) do
     GenServer.call(via(), {:hello, id})
+  end
+
+  def start_item(id) do
+    Horde.DynamicSupervisor.start_child(Dist.DistributedSupervisor, %{
+      id: :gen_server,
+      start: {Dist.Item, :start_link, [id: id]}
+    })
   end
 end

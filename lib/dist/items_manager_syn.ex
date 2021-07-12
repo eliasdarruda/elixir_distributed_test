@@ -1,4 +1,4 @@
-defmodule Dist.ItemsManager do
+defmodule Dist.ItemsManagerSyn do
   use GenServer
 
   @topic __MODULE__
@@ -13,16 +13,12 @@ defmodule Dist.ItemsManager do
   def init(_args) do
     Process.flag(:trap_exit, true)
 
-    :ok = :pg.join(@topic, self())
-
     {:ok, %{}}
   end
 
   @impl true
   def terminate(_reason, state) do
-    :ok = :pg.leave(@topic, self())
-
-    redistribute_state(:pg.get_members(@topic), state)
+    # redistribute_state(:pg.get_members(@topic), state)
 
     {:noreply, state}
   end
@@ -99,13 +95,20 @@ defmodule Dist.ItemsManager do
   end
 
   def start_link(args) do
-    GenServer.start_link(__MODULE__, args, name: __MODULE__)
+    case GenServer.start_link(__MODULE__, args, name: via()) do
+      {:ok, pid} ->
+        {:ok, pid}
+
+      {:error, {:already_started, pid}} ->
+        Logger.debug("already started at #{inspect(pid)}, returning :ignore")
+        :ignore
+    end
   end
 
   # This act as a via getting the first member (not always the same order)
   # subscribed in manager topic
   defp via do
-    :pg.get_members(@topic) |> List.first()
+    {:via, :syn, __MODULE__}
   end
 
   # This also acts as a via but in finding a topic corresponding item_id and then receiving its pid

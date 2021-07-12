@@ -23,7 +23,10 @@ defmodule Dist.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:libcluster, "~> 3.3"}
+      {:libcluster, "~> 3.3"},
+      {:benchee, "~> 1.0"},
+      {:syn, "~> 2.1"},
+      {:horde, "~> 0.7.0"}
     ]
   end
 end
