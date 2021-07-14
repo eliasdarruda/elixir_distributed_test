@@ -6,9 +6,9 @@ defmodule Dist do
   def start(_type, _args) do
     children = [
       {Cluster.Supervisor, [@topologies, [name: Dist.ClusterSupervisor]]},
+      pg_spec(),
       Dist.Registry.child_spec(),
       Dist.ItemHordeDynamicSupervisor,
-      pg_spec(),
       Dist.ItemsManager
     ]
 

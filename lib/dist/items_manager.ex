@@ -13,20 +13,12 @@ defmodule Dist.ItemsManager do
   def init(_args) do
     Process.flag(:trap_exit, true)
 
-    {:ok, %{}, {:continue, :add_topic}}
-  end
-
-  @impl true
-  def handle_continue(:add_topic, state) do
-    # NOOOOOOOO GOD PLEASE NOOOOOOOOOOO
-    :timer.sleep(100)
-
     if :pg.get_members(@topic) == [] do
-      Logger.debug "Joined manager"
+      Logger.debug("Joined manager")
       :ok = :pg.join(@topic, self())
     end
 
-    {:noreply, state}
+    {:ok, %{}}
   end
 
   @impl true
@@ -61,47 +53,54 @@ defmodule Dist.ItemsManager do
 
   @impl true
   def handle_call({:get_ids, type}, _from, state) do
-    ids = Enum.map(state, fn
-      {id, %Ref{type: ^type}} -> id
-      _ -> nil
-    end)
-    |> Enum.reject(&is_nil/1)
+    ids =
+      Enum.map(state, fn
+        {id, %Ref{type: ^type}} -> id
+        _ -> nil
+      end)
+      |> Enum.reject(&is_nil/1)
 
     {:reply, ids, state}
   end
 
   @impl true
   def handle_call({:new, count}, _from, state) do
-    pg = Enum.map(1..count, fn _ ->
-      create_item(:pg)
-    end)
-    |> Map.new
+    pg =
+      Enum.map(1..count, fn _ ->
+        create_item(:pg)
+      end)
+      |> Map.new()
 
-    syn = Enum.map(1..count, fn _ ->
-      create_item(:syn)
-    end)
-    |> Map.new
+    syn =
+      Enum.map(1..count, fn _ ->
+        create_item(:syn)
+      end)
+      |> Map.new()
 
-    horde = Enum.map(1..count, fn _ ->
-      create_item(:horde)
-    end)
-    |> Map.new
+    horde =
+      Enum.map(1..count, fn _ ->
+        create_item(:horde)
+      end)
+      |> Map.new()
 
-    state = Map.merge(state, horde)
-    |> Map.merge(syn)
-    |> Map.merge(pg)
+    state =
+      Map.merge(state, horde)
+      |> Map.merge(syn)
+      |> Map.merge(pg)
 
     {:reply, state, state}
   end
 
   defp create_item(type, existing_id \\ nil)
+
   defp create_item(:syn, existing_id) do
     id = existing_id || :rand.uniform(1_100_000_000)
 
-    {:ok, pid} = case Dist.ItemSyn.start(id: id) do
-      {:error, {:already_started, pid}} -> {:ok, pid}
-      {:ok, pid} -> {:ok, pid}
-    end
+    {:ok, pid} =
+      case Dist.ItemSyn.start(id: id) do
+        {:error, {:already_started, pid}} -> {:ok, pid}
+        {:ok, pid} -> {:ok, pid}
+      end
 
     Process.monitor(pid)
 
@@ -119,10 +118,11 @@ defmodule Dist.ItemsManager do
   defp create_item(:pg, existing_id) do
     id = existing_id || :rand.uniform(1_100_000_000)
 
-    {:ok, pid} = case Dist.ItemPg.start(id: id) do
-      {:error, {:already_started, pid}} -> {:ok, pid}
-      {:ok, pid} -> {:ok, pid}
-    end
+    {:ok, pid} =
+      case Dist.ItemPg.start(id: id) do
+        {:error, {:already_started, pid}} -> {:ok, pid}
+        {:ok, pid} -> {:ok, pid}
+      end
 
     Process.monitor(pid)
 
