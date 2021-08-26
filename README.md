@@ -18,7 +18,9 @@ $> iex --name n1@127.0.0.1 -S mix
 $> iex --name n2@127.0.0.1 -S mix
 ```
 
-`libcluster` will connect those nodes automatically or Dinamically create a slave node through:
+`libcluster` will connect those nodes automatically
+
+## OR Dinamically create a slave node through:
 
 ```elixir
 Dist.SlaveNode.spawn()
