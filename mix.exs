@@ -26,7 +26,8 @@ defmodule Dist.MixProject do
       {:libcluster, "~> 3.3"},
       {:benchee, "~> 1.0"},
       {:syn, "~> 2.1"},
-      {:horde, "~> 0.8"}
+      {:horde, "~> 0.8"},
+      {:flow, "~> 1.1"}
     ]
   end
 end

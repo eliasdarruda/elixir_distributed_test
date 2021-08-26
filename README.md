@@ -18,7 +18,11 @@ $> iex --name n1@127.0.0.1 -S mix
 $> iex --name n2@127.0.0.1 -S mix
 ```
 
-`libcluster` will connect those nodes automatically
+`libcluster` will connect those nodes automatically or Dinamically create a slave node through:
+
+```elixir
+Dist.SlaveNode.spawn()
+```
 
 Start creating Items with `Dist.ItemsManager.new`
 
@@ -29,6 +33,21 @@ This will distribute the current state evenly across all other nodes and recreat
 You can generate childs using `Dist.ItemsManager.new 10`, this will generate 10 processes using syn, pg and horde as distributed registry  
 
 You can then call the processes calling a generated id and the module corresponding what you want, example: `Dist.ItemPg.hello 512951` Assuming it was previously created a process with id `512951`
+
+----
+
+### You can run Dynamic Node processing with
+
+```elixir
+{:ok, node} = Dist.SlaveNode.spawn 4
+Dist.SlaveNode.observe node
+Dist.SlaveNode.heavy node, 100_000_000
+```
+
+This will:
+- spawn a slave node with 4 cpus available.
+- start observer, then in "Load charts tab" you can see the CPU usage with active schedulers
+- And then it will use Flow to compute an Enum using the available schedulers
 
 
 ## Benchmark results (Using benchee)
